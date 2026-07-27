@@ -1,0 +1,3 @@
+Sub OpenAmortForm()
+    AmortizationSchedulingForm.Show
+End Sub
