@@ -105,9 +105,11 @@ Dim tbl As ListObject
 Dim newRow As ListRow
 Dim wsMD As Worksheet
 
+' Set calendar duration from 03/01/2026 to 02/28/2027
 calStart = DateSerial(2026, 3, 1)
 calEnd = DateSerial(2027, 2, 28)
 
+' 
 Set cal = Workbooks("Loan Payment Calendar.xlsx")
 Set amort = Workbooks("Loan Amortization Userform.xlsm")
 
