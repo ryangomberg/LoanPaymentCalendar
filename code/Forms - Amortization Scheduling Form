@@ -109,26 +109,35 @@ Dim wsMD As Worksheet
 calStart = DateSerial(2026, 3, 1)
 calEnd = DateSerial(2027, 2, 28)
 
-' 
+' Set the master calendar and amortization table
 Set cal = Workbooks("Loan Payment Calendar.xlsx")
 Set amort = Workbooks("Loan Amortization Userform.xlsm")
 
+' Set current worksheet to Master Data and current table to MData
 Set wsMD = cal.Sheets("Master Data")
 Set tbl = wsMD.ListObjects("MData")
 
+' Translate entries for numerical text boxes into variables
 loanamt = CDbl(LoanAmountTxtbox.Value)
 annRate = CDbl(LoanIRTxtbox.Value)
 pmtFreq = CInt(PmtFreqTxtbox)
 numPmts = CInt(NumPmtsTxtbox)
 
+' Converting to m-thly interest rate
 rate = (1 + annRate) ^ (1 / pmtFreq) - 1
- 
+
+' Set outstanding balance equal to loan amount and payment date to 
+' the entry in the first payment TextBox
+' This is the first period of the amortization schedule
 bal = loanamt
 pmtDate = CDate(FirstPmtTextbox.Value)
 
+' Add a new worksheet at the end of the scheduling workbook (amort) and set it as the current worksheet
+' Name the current worksheet after the borrower's full name
 Set ws = amort.Sheets.Add(After:=Sheets(Sheets.Count))
 ws.Name = FullNameTxtbox.Value
 
+' Set values for A1 to E1 as the amortization schedule values
 ws.Range("A1:E1") = Array("Date", "Payment", "Principal", "Interest", "Balance")
 
 pmts = Round(Application.WorksheetFunction.pmt(rate, numPmts, -loanamt), 2)
