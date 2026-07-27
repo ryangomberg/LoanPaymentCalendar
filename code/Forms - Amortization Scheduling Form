@@ -1,0 +1,199 @@
+Forms - Amortization Schedule Form
+
+Dashed lines indicate the cutoff for each function.
+
+---------- CODE ----------
+
+Private Sub ClearButton_Click()
+' Clear contents in each TextBox
+
+    Dim ctrl As Control
+    For Each ctrl In Me.Controls
+        If TypeName(ctrl) = "ComboBox" Or TypeName(ctrl) = "TextBox" Then
+            ctrl.Value = ""
+        ElseIf TypeName(ctrl) = "CheckBox" Then
+            ctrl.Value = False
+        End If
+    Next ctrl
+End Sub
+
+--------------------------
+
+Private Function MissingInputs() As Boolean
+' Return an error pop-up if one or more of the following conditions are not met:
+' 1. Any TextBox contains no value
+' 2. Entries requiring numeric values (ex. loan amount, payment frequency) does not contain a numeric value (ex. date, text)
+' 3. Entries for the loan amount TextBox contain a $ sign
+' 4. Interest rate is not expressed in decimal form
+' 5. The first payment date is not expressed in the mm/dd/yyyy format
+
+' Checking Condition 1
+    Dim ctrl As Control
+    For Each ctrl In Me.Controls
+        If TypeName(ctrl) = "TextBox" Then
+            If Trim(ctrl.Value) = "" Then
+                MsgBox ("Please fill in each box before submitting")
+                Exit Function
+            End If
+        End If
+    Next ctrl
+
+' Checking Condition 2
+    If Not IsNumeric(LoanAmountTxtbox) _
+    Or Not IsNumeric(LoanIRTxtbox) _
+    Or Not IsNumeric(NumPmtsTxtbox) _
+    Or Not IsNumeric(PmtFreqTxtbox) Then
+        MsgBox ("Numeric field must contain numbers only (Loan Amount, Loan Interest Rate, Number of Payments, Payment Frequency). Please review the requirements before submitting.")
+        Exit Function
+    End If
+
+' Checking Condition 3
+    If InStr(LoanAmountTxtbox.Value, "$") > 0 Then
+        MsgBox ("Please remove '$' from the loan amount")
+        Exit Function
+    End If
+
+' Checking Condition 4
+    If CDbl(LoanIRTxtbox) > 1 Then
+        MsgBox ("Interest rate must be expressed in decimal form")
+        Exit Function
+    End If
+
+' Checking Condition 5
+    If Not IsDate(FirstPmtTextbox.Value) Then
+        MsgBox ("Date must be in MM/DD/YYYY format")
+        Exit Function
+    End If
+    
+MissingInputs = True
+
+End Function
+
+--------------------------
+
+Private Sub BuildSchedule()
+' Builds the loan amortization calendar for each borrower
+' Variable List:
+' Workbooks: cal
+' Worksheets: ws, monthSheet, wsMD
+' ListObject: tbl
+' ListRow: newRow
+' Date: calStart, calEnd, pmtDate
+' Double: loanamt, annRate, rate, pmts, bal, balloonBalance, balloonPmt, interest, principal
+' Integer: pmtFreq, numPmts, i
+
+Dim ws As Worksheet
+Dim cal As Workbook
+Dim monthSheet As Worksheet
+Dim calStart As Date
+Dim calEnd As Date
+Dim loanamt As Double
+Dim annRate As Double
+Dim pmtFreq As Integer
+Dim numPmts As Integer
+Dim rate As Double
+Dim pmts As Double
+Dim bal As Double
+Dim balloonBalance As Double
+Dim balloonPmt As Double
+Dim interest As Double
+Dim principal As Double
+Dim pmtDate As Date
+Dim i As Integer
+
+Dim tbl As ListObject
+Dim newRow As ListRow
+Dim wsMD As Worksheet
+
+calStart = DateSerial(2026, 3, 1)
+calEnd = DateSerial(2027, 2, 28)
+
+Set cal = Workbooks("Loan Payment Calendar.xlsx")
+Set amort = Workbooks("Loan Amortization Userform.xlsm")
+
+Set wsMD = cal.Sheets("Master Data")
+Set tbl = wsMD.ListObjects("MData")
+
+loanamt = CDbl(LoanAmountTxtbox.Value)
+annRate = CDbl(LoanIRTxtbox.Value)
+pmtFreq = CInt(PmtFreqTxtbox)
+numPmts = CInt(NumPmtsTxtbox)
+
+rate = (1 + annRate) ^ (1 / pmtFreq) - 1
+ 
+bal = loanamt
+pmtDate = CDate(FirstPmtTextbox.Value)
+
+Set ws = amort.Sheets.Add(After:=Sheets(Sheets.Count))
+ws.Name = FullNameTxtbox.Value
+
+ws.Range("A1:E1") = Array("Date", "Payment", "Principal", "Interest", "Balance")
+
+pmts = Round(Application.WorksheetFunction.pmt(rate, numPmts, -loanamt), 2)
+
+For i = 1 To numPmts
+    interest = Round(bal * rate, 2)
+    principal = Round(pmts - interest, 2)
+    
+    bal = bal - principal
+    ws.Cells(i + 1, 1) = pmtDate
+    ws.Cells(i + 1, 2) = pmts
+    ws.Cells(i + 1, 3) = principal
+    ws.Cells(i + 1, 4) = interest
+    ws.Cells(i + 1, 5) = bal
+    
+    If pmtDate >= calStart And pmtDate <= calEnd Then
+        sheetName = Format(pmtDate, "mmm yyyy")
+        
+        On Error Resume Next
+        Set monthSheet = cal.Sheets(sheetName)
+        On Error GoTo 0
+        
+        If monthSheet Is Nothing Then
+            Set monthSheet = cal.Sheets.Add
+            monthSheet.Name = sheetName
+            monthSheet.Range("A1:E1") = Array("Borrower", "Date", "Payment", "Principal", "Interest")
+        End If
+    
+    nextRow = monthSheet.Cells(monthSheet.Rows.Count, 1).End(xlUp).Row + 1
+    
+    monthSheet.Cells(nextRow, 1) = FullNameTxtbox.Value
+    monthSheet.Cells(nextRow, 2) = pmtDate
+    monthSheet.Cells(nextRow, 3) = pmts
+    monthSheet.Cells(nextRow, 4) = principal
+    monthSheet.Cells(nextRow, 5) = interest
+    
+    Set newRow = tbl.ListRows.Add
+    newRow.Range(1, 1).Value = FullNameTxtbox.Value
+    newRow.Range(1, 2).Value = pmtDate
+    newRow.Range(1, 3).Value = pmts
+    newRow.Range(1, 4).Value = principal
+    newRow.Range(1, 5).Value = interest
+    
+    End If
+    
+    pmtDate = DateAdd("m", 12 / pmtFreq, pmtDate)
+    
+Next i
+
+ws.Columns("B:E").NumberFormat = "$#,##0.00"
+ws.Columns("A").NumberFormat = "mm/dd/yyyy"
+
+End Sub
+
+--------------------------
+
+Private Sub FullNameTxtbox_Change()
+
+End Sub
+
+--------------------------
+
+Private Sub SubmitButton_Click()
+' Private function
+' Calls the BuildSchedule function if each TextBox contains a value
+    If Not MissingInputs Then Exit Sub
+    BuildSchedule
+End Sub
+
+--------------------------
