@@ -140,19 +140,26 @@ ws.Name = FullNameTxtbox.Value
 ' Set values for A1 to E1 as the amortization schedule values
 ws.Range("A1:E1") = Array("Date", "Payment", "Principal", "Interest", "Balance")
 
+' Calculate payment installations
 pmts = Round(Application.WorksheetFunction.pmt(rate, numPmts, -loanamt), 2)
 
+' Iterate amortization over the number of payments
 For i = 1 To numPmts
+    ' Interest and principal calculations
     interest = Round(bal * rate, 2)
     principal = Round(pmts - interest, 2)
-    
+
+    ' Set outstanding balance
     bal = bal - principal
+
+    ' Fill in information for (i + 1)th row through columns A-E
     ws.Cells(i + 1, 1) = pmtDate
     ws.Cells(i + 1, 2) = pmts
     ws.Cells(i + 1, 3) = principal
     ws.Cells(i + 1, 4) = interest
     ws.Cells(i + 1, 5) = bal
-    
+
+    ' Add same information to the monthly calendar on the next row 
     If pmtDate >= calStart And pmtDate <= calEnd Then
         sheetName = Format(pmtDate, "mmm yyyy")
         
@@ -165,7 +172,7 @@ For i = 1 To numPmts
             monthSheet.Name = sheetName
             monthSheet.Range("A1:E1") = Array("Borrower", "Date", "Payment", "Principal", "Interest")
         End If
-    
+
     nextRow = monthSheet.Cells(monthSheet.Rows.Count, 1).End(xlUp).Row + 1
     
     monthSheet.Cells(nextRow, 1) = FullNameTxtbox.Value
@@ -187,14 +194,9 @@ For i = 1 To numPmts
     
 Next i
 
+' Format columns B-E to USD currency and A as a date
 ws.Columns("B:E").NumberFormat = "$#,##0.00"
 ws.Columns("A").NumberFormat = "mm/dd/yyyy"
-
-End Sub
-
---------------------------
-
-Private Sub FullNameTxtbox_Change()
 
 End Sub
 
