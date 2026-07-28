@@ -14,6 +14,7 @@ Build a UserForm that will construct an amortization schedule. The UserForm will
 * Total number of payments
 * Date of the first payment
 * Name of the borrower
+
 In return, an Excel worksheet under the borrower's name will have an amortization schedule, containing the date, payment amount, principal, interest, and outstanding balance after each installment. Additionally, each payment is routed into the payment calendar workbook.
 
 ## Methods
