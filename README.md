@@ -4,6 +4,8 @@
 ## Project Overview
 This project constructs two medians of consolidating loan amortization data upon feeding information into an Excel encoded UserForm. First, a new worksheet is created under the borrower's full name, including common features of an amortization schedule (payment date, payment amount, principal, interest, outstanding balance). Second, the data is fed into a master calendar, containing all payments in chronological order, as well as monthly worksheets in which a payment is due. This opens up opportunities for cross-sectional analysis, as through a PivotTable or PivotChart. The UserForm does not accept missing entries or entries with the incorrect specifications.
 
+**NOTE: Both the Schedule and Payment workbooks must be opened prior to running the macro**
+
 <img width="1298" height="694" alt="ProjectOverview" src="https://github.com/user-attachments/assets/89dd7a3d-c421-47dc-b26d-2d80a2d8d090" />
 
 
